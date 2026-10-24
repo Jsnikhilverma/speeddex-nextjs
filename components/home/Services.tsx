@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 
 import Container from "@/components/ui/Container";
 import Reveal from "@/components/ui/Reveal";
@@ -72,8 +72,8 @@ const services = [
   },
 ];
 
-// 3D Perspective Card Swap Animation
-const cardVariants = {
+// Type-safe 3D card animation variants
+const cardVariants: Variants = {
   initial: {
     opacity: 0,
     rotateY: -25,
@@ -81,6 +81,7 @@ const cardVariants = {
     scale: 0.9,
     z: -100,
   },
+
   animate: {
     opacity: 1,
     rotateY: 0,
@@ -89,9 +90,10 @@ const cardVariants = {
     z: 0,
     transition: {
       duration: 0.7,
-      ease: [0.16, 1, 0.3, 1],
+      ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
     },
   },
+
   exit: {
     opacity: 0,
     rotateY: 25,
@@ -99,7 +101,7 @@ const cardVariants = {
     scale: 0.95,
     transition: {
       duration: 0.4,
-      ease: [0.7, 0, 0.84, 0],
+      ease: [0.7, 0, 0.84, 0] as [number, number, number, number],
     },
   },
 };
@@ -107,6 +109,12 @@ const cardVariants = {
 export default function Services() {
   const [activeService, setActiveService] = useState(0);
   const active = services[activeService];
+
+  const getServiceUrl = (title: string) =>
+    `/services/${title
+      .toLowerCase()
+      .replaceAll(" ", "-")
+      .replaceAll("&", "and")}`;
 
   return (
     <section className="relative overflow-hidden bg-[#11110f] py-24 text-white sm:py-32 lg:py-20">
@@ -123,7 +131,7 @@ export default function Services() {
       />
 
       <Container>
-        {/* HEADER */}
+        {/* Header */}
         <div className="relative z-10 grid gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-end">
           <Reveal>
             <div className="flex items-center gap-3">
@@ -152,9 +160,9 @@ export default function Services() {
           </h2>
         </Reveal>
 
-        {/* MAIN SERVICE AREA */}
+        {/* Main Service Area */}
         <div className="relative z-10 mt-16 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
-          {/* LEFT — SERVICE LIST WITH GLOW SWEEP */}
+          {/* Left: Service List */}
           <div className="border-t border-white/10">
             {services.map((service, index) => {
               const isActive = index === activeService;
@@ -162,14 +170,12 @@ export default function Services() {
               return (
                 <Reveal key={service.number} delay={index * 0.04}>
                   <Link
-                    href={`/services/${service.title
-                      .toLowerCase()
-                      .replaceAll(" ", "-")
-                      .replaceAll("&", "and")}`}
+                    href={getServiceUrl(service.title)}
                     onMouseEnter={() => setActiveService(index)}
-                    className="group relative block border-b border-white/10 overflow-hidden"
+                    onFocus={() => setActiveService(index)}
+                    className="group relative block overflow-hidden border-b border-white/10"
                   >
-                    {/* Hover Gold Shimmer Line Sweep */}
+                    {/* Active Gold Background */}
                     {isActive && (
                       <motion.div
                         layoutId="activeGlow"
@@ -182,15 +188,15 @@ export default function Services() {
                       />
                     )}
 
-                    <div className="relative flex items-center gap-5 py-6 px-2">
-                      {/* Active Indicator Bar */}
+                    <div className="relative flex items-center gap-5 px-2 py-6">
+                      {/* Active Indicator */}
                       <motion.span
                         animate={{
                           scaleY: isActive ? 1 : 0,
                           opacity: isActive ? 1 : 0,
                         }}
-                        className="absolute left-0 top-0 h-full w-1 origin-center bg-[#d1b58b]"
                         transition={{ duration: 0.25 }}
+                        className="absolute left-0 top-0 h-full w-1 origin-center bg-[#d1b58b]"
                       />
 
                       {/* Number */}
@@ -202,7 +208,7 @@ export default function Services() {
                         {service.number}
                       </span>
 
-                      {/* Title */}
+                      {/* Title and Mobile Description */}
                       <div className="min-w-0 flex-1">
                         <h3
                           className={`text-2xl font-semibold tracking-[-0.04em] transition-colors sm:text-3xl lg:text-4xl ${
@@ -214,7 +220,6 @@ export default function Services() {
                           {service.title}
                         </h3>
 
-                        {/* Mobile Description */}
                         <motion.div
                           initial={false}
                           animate={{
@@ -230,7 +235,7 @@ export default function Services() {
                         </motion.div>
                       </div>
 
-                      {/* Arrow Icon with Kinetic Morph */}
+                      {/* Arrow */}
                       <motion.span
                         animate={{
                           scale: isActive ? 1.15 : 1,
@@ -259,11 +264,10 @@ export default function Services() {
             })}
           </div>
 
-          {/* RIGHT — 3D PERSPECTIVE CARD DISPLAY */}
+          {/* Right: 3D Perspective Card */}
           <Reveal delay={0.2} direction="right">
-            <div className="relative hidden lg:block [perspective:1200px]">
+            <div className="relative hidden [perspective:1200px] lg:block">
               <div className="relative aspect-[1.08] w-full overflow-hidden rounded-2xl border border-white/10 bg-[#161614] p-2">
-                {/* 3D Holographic Card Transition */}
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={active.number}
@@ -272,6 +276,7 @@ export default function Services() {
                     animate="animate"
                     exit="exit"
                     className="relative h-full w-full overflow-hidden rounded-xl"
+                    style={{ transformStyle: "preserve-3d" }}
                   >
                     <Image
                       src={active.image}
@@ -281,10 +286,10 @@ export default function Services() {
                       className="object-cover"
                     />
 
-                    {/* Dark Vignette Overlay */}
+                    {/* Dark Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/20" />
 
-                    {/* Animated Light Scan Overlay */}
+                    {/* Animated Light Scan */}
                     <motion.div
                       initial={{ y: "-100%" }}
                       animate={{ y: "200%" }}
@@ -296,19 +301,20 @@ export default function Services() {
                       className="pointer-events-none absolute inset-x-0 h-40 bg-gradient-to-b from-transparent via-[#d1b58b]/15 to-transparent"
                     />
 
-                    {/* Image Text Details */}
+                    {/* Card Details */}
                     <div className="absolute bottom-0 left-0 right-0 p-8">
                       <motion.div
                         initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.15 }}
                       >
-                        <div className="mb-3 flex items-center justify-between">
+                        <div className="mb-3 flex items-center justify-between gap-3">
                           <span className="inline-flex items-center gap-2 rounded-full border border-[#d1b58b]/40 bg-black/60 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.25em] text-[#d1b58b] backdrop-blur-md">
                             <Sparkles size={11} />
                             {active.number} / Capability
                           </span>
-                          <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/50">
+
+                          <span className="text-right text-[9px] font-semibold uppercase tracking-[0.2em] text-white/50">
                             {active.meta}
                           </span>
                         </div>
@@ -318,17 +324,16 @@ export default function Services() {
                             <h3 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
                               {active.title}
                             </h3>
+
                             <p className="mt-2 max-w-md text-xs leading-relaxed text-white/70">
                               {active.description}
                             </p>
                           </div>
 
                           <Link
-                            href={`/services/${active.title
-                              .toLowerCase()
-                              .replaceAll(" ", "-")
-                              .replaceAll("&", "and")}`}
-                            className="group/btn flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#d1b58b] text-black transition-all hover:bg-white hover:scale-110"
+                            href={getServiceUrl(active.title)}
+                            aria-label={`Explore ${active.title} services`}
+                            className="group/btn flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#d1b58b] text-black transition-all hover:scale-110 hover:bg-white"
                           >
                             <ArrowUpRight
                               size={18}
